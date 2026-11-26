@@ -14,6 +14,10 @@ launcherIcon {
     symbol = "photo_camera"
 }
 
+nativeAbis {
+    armv7 = true
+}
+
 android {
     defaultConfig {
         applicationId = "com.vayunmathur.camera"
@@ -37,7 +41,7 @@ androidComponents {
 // Native panorama stitcher + night burst aligner (Rust). See camera/src/main/rust/.
 // camera_stitch also links vision_core (library/vision), and :library:ml's
 // modelrunner is in the graph too, so the host .so set is not just camera's own.
-rustNativeLib("camera_stitch", "camera")
+rustNativeLib("camera_stitch", "camera", extraAbis = listOf(ABI_ARMV7))
 
 // Only the classes below actually load a native library: they call
 // StitchNative directly (the two host-.so tests), execute a path that

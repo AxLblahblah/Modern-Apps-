@@ -1,0 +1,49 @@
+name: camera-armv7
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "vibe/camera-armv7*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install NDK and platform
+        run: |
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager --install "ndk;29.0.14206865" "platforms;android-37" > /dev/null
+
+      - uses: dtolnay/rust-toolchain@1.97.0
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: CI Gradle heap (per CONTRIBUTING.md)
+        run: |
+          mkdir -p ~/.gradle
+          cat > ~/.gradle/gradle.properties <<'EOF'
+          org.gradle.jvmargs=-Xmx6144m -XX:MaxMetaspaceSize=1024m -XX:+UseG1GC
+          org.gradle.workers.max=2
+          EOF
+
+      - name: Build MA Camera (arm64-v8a + armeabi-v7a)
+        run: ./gradlew :camera:assembleDev -Parmv7Modelrunner=true --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ma-camera-armv7-apk
+          path: camera/build/outputs/apk/dev/*.apk
+          if-no-files-found: error

@@ -23,10 +23,17 @@ androidComponents {
 rustNativeLib(
     "modelrunner",
     "ml",
-    extraAbis = if (providers.gradleProperty("emulatorAbi").orNull == ABI_X86_64) {
-        listOf(ABI_X86_64)
-    } else {
-        emptyList()
+    extraAbis = buildList {
+        if (providers.gradleProperty("emulatorAbi").orNull == ABI_X86_64) {
+            add(ABI_X86_64)
+        }
+        // Opt-in: apps that package armeabi-v7a and use the segmenters
+        // (currently :camera via nativeAbis { armv7 = true }) pass
+        // -Parmv7Modelrunner=true. Unconditional would add a second
+        // modelrunner .so to every other app shipping :library:ml.
+        if (providers.gradleProperty("armv7Modelrunner").orNull == "true") {
+            add(ABI_ARMV7)
+        }
     },
     shaders = listOf("*.comp"),
     glslcArgs = listOf("--target-env=vulkan1.1", "-O"),
