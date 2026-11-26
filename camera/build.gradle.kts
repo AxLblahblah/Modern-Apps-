@@ -31,6 +31,12 @@ android {
 }
 
 androidComponents {
+    finalizeDsl { ext ->
+        // armv7-only fork build: drop the default arm64-v8a filter added by
+        // common-conventions-app so the APK is 32-bit only.
+        ext.defaultConfig.ndk.abiFilters.remove(ABI_ARM64)
+        ext.buildTypes.getByName("dev").ndk.abiFilters.remove(ABI_ARM64)
+    }
     onVariants { variant ->
         variant.sources.jniLibs?.addStaticSourceDirectory(
             layout.buildDirectory.dir("rustJniLibs").get().asFile.absolutePath
